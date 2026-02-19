@@ -1,0 +1,41 @@
+async transformConfig() {
+                    if (!this.targetDomain || !this.rawInput) {
+                        this.showToastMessage('Target Domain and VLESS link are required!', 'error', 'fas fa-exclamation-triangle');
+                        return;
+                    }
+                    this.isLoading = true;
+                    // Artificial delay for smooth UI transition
+                    await new Promise(r => setTimeout(r, 600));
+                    
+                    try {
+                        const url = new URL(this.rawInput.trim());
+                        const params = Object.fromEntries(url.searchParams);
+                        const uuid = url.username;
+                        
+                        // Clean Remark Logic: Remove 404 and Telegram links
+                        let remark = decodeURIComponent(url.hash.substring(1)) || 'Config';
+                        
+                        // 1. Remove Telegram URLs (t.me/...)
+                        remark = remark.replace(/t\.me\/[a-zA-Z0-9_]+/g, '');
+                        // 2. Remove Telegram Handles (@username)
+                        remark = remark.replace(/@[a-zA-Z0-9_]+/g, '');
+                        // 3. Remove "404" text
+                        remark = remark.replace(/404/g, '');
+                        // 4. Trim spaces and prefix with AKZ-
+                        remark = AKZ-${remark.trim() || 'Service'};
+
+                        const domain = this.targetDomain;
+                        const path = params.path || '/';
+
+                        // Build the final VLESS link with proper template literals
+                        this.finalResult = vless://${uuid}@${domain}:443?path=${encodeURIComponent(path)}&security=tls&alpn=http%2F1.1&encryption=none&host=${domain}&fp=chrome&type=ws&sni=${domain}#${encodeURIComponent(remark)};
+                        
+                        this.addToHistory(remark, this.finalResult);
+                        this.showQR = false;
+                        this.showToastMessage('Transformation successful!', 'success', 'fas fa-check-circle');
+                    } catch (e) {
+                        this.showToastMessage('Invalid VLESS Link Format!', 'error', 'fas fa-times-circle');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
